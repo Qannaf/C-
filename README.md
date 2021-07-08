@@ -75,7 +75,7 @@ must be declared and defined before it is called elsewhere in a program.
 Note: popular function definitions may be hidden in other included files (often for convenience and reuse
 across many files). This is a common use of header files.
 
-* Function Declaration
+1. Function Declaration
 A function declaration is declares the existence of a function with its name and type signature to the compiler.
 
 The syntax is as the following:
@@ -101,7 +101,7 @@ be empty.
     void do_something(); // The function takes no parameters, and does not return anything.
 // Note that it can still affect variables it has access to.
 
-* Function Call
+1. Function Call
 A function can be called after it has been declared. For example, the following program calls add2 with the value of
 2 within the function of main:
 ```CPP
@@ -120,7 +120,7 @@ return 0;
 Here, add2(2) is the syntax for a function call.
 
 
-* Function Definition
+1. Function Definition
 A function definition* is similar to a declaration, except it also contains the code that is executed when the function
 is called within its body.
 An example of a function definition for add2 might be:
@@ -133,7 +133,7 @@ return j; // Returning or, in essence, substitution of j for a function call to
 }
 ```
 
-* Function Overloading
+1. Function Overloading
 You can create multiple functions with the same name but different parameters.
 ```CPP
 int add2(int i) // Code contained in this definition will be evaluated
@@ -151,7 +151,7 @@ Both functions are called by the same name add2, but the actual function that is
 amount and type of the parameters in the call. In most cases, the C++ compiler can compute which function to call.
 In some cases, the type must be explicitly stated.
 
-* Default Parameters
+1. Default Parameters
 Default values for function parameters can only be specified in function declarations.
 ```CPP
 int multiply(int a, int b = 7); // b has default value of 7.
@@ -165,7 +165,7 @@ default value of 7. Default arguments must be placed in the latter arguments of 
     int multiply(int a = 10, int b = 20); // This is legal
     int multiply(int a = 10, int b); // This is illegal since int a is in the former
 
-* Special Function Calls - Operators
+1. Special Function Calls - Operators
 There exist special function calls in C++ which have different syntax than name_of_function(value1, value2,
 value3). The most common example is that of operators.
 
