@@ -101,7 +101,7 @@ be empty.
     void do_something(); // The function takes no parameters, and does not return anything.
 // Note that it can still affect variables it has access to.
 
-1. Function Call
+2. Function Call
 A function can be called after it has been declared. For example, the following program calls add2 with the value of
 2 within the function of main:
 ```CPP
@@ -120,7 +120,7 @@ return 0;
 Here, add2(2) is the syntax for a function call.
 
 
-1. Function Definition
+3. Function Definition
 A function definition* is similar to a declaration, except it also contains the code that is executed when the function
 is called within its body.
 An example of a function definition for add2 might be:
@@ -151,7 +151,7 @@ Both functions are called by the same name add2, but the actual function that is
 amount and type of the parameters in the call. In most cases, the C++ compiler can compute which function to call.
 In some cases, the type must be explicitly stated.
 
-1. Default Parameters
+4. Default Parameters
 Default values for function parameters can only be specified in function declarations.
 ```CPP
 int multiply(int a, int b = 7); // b has default value of 7.
@@ -165,7 +165,7 @@ default value of 7. Default arguments must be placed in the latter arguments of 
     int multiply(int a = 10, int b = 20); // This is legal
     int multiply(int a = 10, int b); // This is illegal since int a is in the former
 
-1. Special Function Calls - Operators
+5. Special Function Calls - Operators
 There exist special function calls in C++ which have different syntax than name_of_function(value1, value2,
 value3). The most common example is that of operators.
 
@@ -183,3 +183,687 @@ While in C++'s immediate predecessor, C, operator function names cannot be assig
 providing additional definitions with different type signatures, in C++, this is valid. "Hiding" additional function
 definitions under one unique function name is referred to as operator overloading in C++, and is a relatively
 common, but not universal, convention in C++.
+
+
+
+## Section 1.5: Visibility of function prototypes and declarations
+In C++, code must be declared or defined before usage. For example, the following produces a compile time error:
+```CPP
+int main()
+{
+foo(2); // error: foo is called, but has not yet been declared
+}
+void foo(int x) // this later definition is not known in main
+{
+}
+```
+There are two ways to resolve this: putting either the definition or declaration of foo() before its usage in main().
+Here is one example:
+```CPP
+void foo(int x) {} //Declare the foo function and body first
+int main()
+{
+foo(2); // OK: foo is completely defined beforehand, so it can be called here.
+}
+```
+However it is also possible to "forward-declare" the function by putting only a "prototype" declaration before its
+usage and then defining the function body later:
+void foo(int); // Prototype declaration of foo, seen by main
+// Must specify return type, name, and argument list types
+```CPP
+int main()
+{
+foo(2); // OK: foo is known, called even though its body is not yet defined
+}
+void foo(int x) //Must match the prototype
+{
+// Define body of foo here
+}
+```
+The prototype must specify the return type (void), the name of the function (foo), and the argument list variable
+types (int), but the names of the arguments are NOT required.
+One common way to integrate this into the organization of source files is to make a header file containing all of the
+prototype declarations:
+// foo.h
+void foo(int); // prototype declaration
+and then provide the full definition elsewhere:
+// foo.cpp --> foo.o
+#include "foo.h" // foo's prototype declaration is "hidden" in here
+void foo(int x) { } // foo's body definition
+and then, once compiled, link the corresponding object file foo.o into the compiled object file where it is used in
+the linking phase, main.o:
+// main.cpp --> main.o
+#include "foo.h" // foo's prototype declaration is "hidden" in here
+int main() { foo(2); } // foo is valid to call because its prototype declaration was beforehand.
+// the prototype and body definitions of foo are linked through the object files
+An “unresolved external symbol” error occurs when the function prototype and call exist, but the function body is
+not defined. These can be trickier to resolve as the compiler won't report the error until the final linking stage, and
+it doesn't know which line to jump to in the code to show the error.
+Section 1.6: Preprocessor
+The preprocessor is an important part of the compiler.
+It edits the source code, cutting some bits out, changing others, and adding other things.
+In source files, we can include preprocessor directives. These directives tells the preprocessor to perform specific
+actions. A directive starts with a # on a new line. Example:
+```CPP 
+#define ZERO 0 
+```
+The first preprocessor directive you will meet is probably the
+```CPP
+#include <something>
+```
+directive. What it does is takes all of something and inserts it in your file where the directive was. The hello world
+program starts with the line
+```CPP
+#include <iostream>
+```
+This line adds the functions and objects that let you use the standard input and output.
+The C language, which also uses the preprocessor, does not have as many header files as the C++ language, but in
+C++ you can use all the C header files.
+The next important directive is probably the
+```CPP
+#define something something_else
+```
+directive. This tells the preprocessor that as it goes along the file, it should replace every occurrence of something
+with something_else. It can also make things similar to functions, but that probably counts as advanced C++.
+The something_else is not needed, but if you define something as nothing, then outside preprocessor directives, all
+occurrences of something will vanish.
+This actually is useful, because of the #if,#else and #ifdef directives. The format for these would be the following:
+```CPP
+#if something==true
+//code
+#else
+//more code
+#endif
+#ifdef thing_that_you_want_to_know_if_is_defined
+//code
+#endif
+```
+These directives insert the code that is in the true bit, and deletes the false bits. this can be used to have bits of
+code that are only included on certain operating systems, without having to rewrite the whole code.
+
+
+
+
+# Chapter 2: Templates
+Classes, functions, and (since C++14) variables can be templated. A template is a piece of code with some free
+parameters that will become a concrete class, function, or variable when all parameters are specified. Parameters
+can be types, values, or themselves templates. A well-known template is std::vector, which becomes a concrete
+container type when the element type is specified, e.g., std::vector<int>.
+## Section 2.1: Basic Class Template
+The basic idea of a class template is that the template parameter gets substituted by a type at compile time. The
+result is that the same class can be reused for multiple types. The user specifies which type will be used when a
+variable of the class is declared. Three examples of this are shown in main():
+```CPP
+#include <iostream>
+using std::cout;
+template <typename T> // A simple class to hold one number of any type
+class Number {
+public:
+void setNum(T n); // Sets the class field to the given number
+T plus1() const; // returns class field's "follower"
+private:
+T num; // Class field
+};
+template <typename T> // Set the class field to the given number
+void Number<T>::setNum(T n) {
+num = n;
+}
+template <typename T> // returns class field's "follower"
+T Number<T>::plus1() const {
+return num + 1;
+}
+
+int main() {
+Number<int> anInt; // Test with an integer (int replaces T in the class)
+anInt.setNum(1);
+cout << "My integer + 1 is " << anInt.plus1() << "\n"; // Prints 2
+Number<double> aDouble; // Test with a double
+aDouble.setNum(3.1415926535897);
+cout << "My double + 1 is " << aDouble.plus1() << "\n"; // Prints 4.14159
+Number<float> aFloat; // Test with a float
+aFloat.setNum(1.4);
+cout << "My float + 1 is " << aFloat.plus1() << "\n"; // Prints 2.4
+return 0; // Successful completion
+}
+```
+
+## Section 2.2: Function Templates
+Templating can also be applied to functions (as well as the more traditional structures) with the same effect.
+// 'T' stands for the unknown type
+// Both of our arguments will be of the same type.
+```CPP
+template<typename T>
+void printSum(T add1, T add2)
+{
+std::cout << (add1 + add2) << std::endl;
+}
+```
+This can then be used in the same way as structure templates.
+```CPP
+printSum<int>(4, 5);
+printSum<float>(4.5f, 8.9f);
+```
+In both these case the template argument is used to replace the types of the parameters; the result works just like
+a normal C++ function (if the parameters don't match the template type the compiler applies the standard
+conversions).
+One additional property of template functions (unlike template classes) is that the compiler can infer the template
+parameters based on the parameters passed to the function.
+```CPP
+printSum(4, 5); // Both parameters are int.
+// This allows the compiler deduce that the type
+// T is also int.
+printSum(5.0, 4); // In this case the parameters are two different types.
+// The compiler is unable to deduce the type of T
+// because there are contradictions. As a result
+// this is a compile time error.
+```
+This feature allows us to simplify code when we combine template structures and functions. There is a common
+pattern in the standard library that allows us to make template structure X using a helper function make_X().
+```CPP
+// The make_X pattern looks like this.
+// 1) A template structure with 1 or more template types.
+template<typename T1, typename T2>
+struct MyPair
+{
+T1 first;
+T2 second;
+};
+// 2) A make function that has a parameter type for
+// each template parameter in the template structure.
+template<typename T1, typename T2>
+MyPair<T1, T2> make_MyPair(T1 t1, T2 t2)
+{
+return MyPair<T1, T2>{t1, t2};
+}
+How does this help?
+auto val1 = MyPair<int, float>{5, 8.7}; // Create object explicitly defining the types
+auto val2 = make_MyPair(5, 8.7); // Create object using the types of the paramters.
+// In this code both val1 and val2 are the same
+// type.
+```
+Note: This is not designed to shorten the code. This is designed to make the code more robust. It allows the types
+to be changed by changing the code in a single place rather than in multiple locations.
+
+## Section 2.3: Variadic template data structures
+Version ≥ C++14
+It is often useful to define classes or structures that have a variable number and type of data members which are
+defined at compile time. The canonical example is std::tuple, but sometimes is it is necessary to define your own
+custom structures. Here is an example that defines the structure using compounding (rather than inheritance as
+with std::tuple. Start with the general (empty) definition, which also serves as the base-case for recrusion
+termination in the later specialisation:
+```CPP
+template<typename ... T>
+struct DataStructure {};
+```
+This already allows us to define an empty structure, DataStructure<> data, albeit that isn't very useful yet.
+Next comes the recursive case specialisation:
+```CPP
+template<typename T, typename ... Rest>
+struct DataStructure<T, Rest ...>
+{
+DataStructure(const T& first, const Rest& ... rest)
+: first(first)
+, rest(rest...)
+{}
+T first;
+DataStructure<Rest ... > rest;
+};
+```
+This is now sufficient for us to create arbitrary data structures, like DataStructure<int, float, std::string>
+data(1, 2.1, "hello").
+So what's going on? First, note that this is a specialisation whose requirement is that at least one variadic template
+parameter (namely T above) exists, whilst not caring about the specific makeup of the pack Rest. Knowing that T
+exists allows the definition of its data member, first. The rest of the data is recursively packaged as
+DataStructure<Rest ... > rest. The constructor initiates both of those members, including a recursive
+constructor call to the rest member.
+To understand this better, we can work through an example: suppose you have a declaration DataStructure<int,
+float> data. The declaration first matches against the specialisation, yielding a structure with int first and
+DataStructure<float> rest data members. The rest definition again matches this specialisation, creating its own
+float first and DataStructure<> rest members. Finally this last rest matches against the base-case defintion,
+producing an empty structure.
+You can visualise this as follows:
+DataStructure<int, float>
+-> int first
+-> DataStructure<float> rest
+-> float first
+-> DataStructure<> rest
+-> (empty)
+Now we have the data structure, but its not terribly useful yet as we cannot easily access the individual data
+elements (for example to access the last member of DataStructure<int, float, std::string> data we would
+have to use data.rest.rest.first, which is not exactly user-friendly). So we add a get method to it (only needed
+C++ Notes for Professionals 14
+in the specialisation as the base-case structure has no data to get):
+```CPP
+template<typename T, typename ... Rest>
+struct DataStructure<T, Rest ...>
+{
+...
+template<size_t idx>
+auto get()
+{
+return GetHelper<idx, DataStructure<T,Rest...>>::get(*this);
+}
+...
+};
+```
+As you can see this get member function is itself templated - this time on the index of the member that is needed
+(so usage can be things like data.get<1>(), similar to std::tuple). The actual work is done by a static function in a
+helper class, GetHelper. The reason we can't define the required functionality directly in DataStructure's get is
+because (as we will shortly see) we would need to specialise on idx - but it isn't possible to specialise a template
+member function without specialising the containing class template. Note also the use of a C++14-style auto here
+makes our lives significantly simpler as otherwise we would need quite a complicated expression for the return
+type.
+So on to the helper class. This time we will need an empty forward declaration and two specialisations. First the
+declaration:
+```CPP
+template<size_t idx, typename T>
+struct GetHelper;
+Now the base-case (when idx==0). In this case we just return the first member:
+template<typename T, typename ... Rest>
+struct GetHelper<0, DataStructure<T, Rest ... >>
+{
+static T get(DataStructure<T, Rest...>& data)
+{
+return data.first;
+}
+};
+```
+In the recursive case, we decrement idx and invoke the GetHelper for the rest member:
+```CPP
+template<size_t idx, typename T, typename ... Rest>
+struct GetHelper<idx, DataStructure<T, Rest ... >>
+{
+static auto get(DataStructure<T, Rest...>& data)
+{
+return GetHelper<idx-1, DataStructure<Rest ...>>::get(data.rest);
+}
+};
+```
+To work through an example, suppose we have DataStructure<int, float> data and we need data.get<1>().
+This invokes GetHelper<1, DataStructure<int, float>>::get(data) (the 2nd specialisation), which in turn
+invokes GetHelper<0, DataStructure<float>>::get(data.rest), which finally returns (by the 1st specialisation as
+now idx is 0) data.rest.first.
+So that's it! Here is the whole functioning code, with some example use in the main function:
+```CPP
+#include <iostream>
+template<size_t idx, typename T>
+struct GetHelper;
+template<typename ... T>
+struct DataStructure
+{
+};
+template<typename T, typename ... Rest>
+struct DataStructure<T, Rest ...>
+{
+DataStructure(const T& first, const Rest& ... rest)
+: first(first)
+, rest(rest...)
+{}
+T first;
+DataStructure<Rest ... > rest;
+template<size_t idx>
+auto get()
+{
+return GetHelper<idx, DataStructure<T,Rest...>>::get(*this);
+}
+};
+template<typename T, typename ... Rest>
+struct GetHelper<0, DataStructure<T, Rest ... >>
+{
+static T get(DataStructure<T, Rest...>& data)
+{
+return data.first;
+}
+};
+template<size_t idx, typename T, typename ... Rest>
+struct GetHelper<idx, DataStructure<T, Rest ... >>
+{
+static auto get(DataStructure<T, Rest...>& data)
+{
+return GetHelper<idx-1, DataStructure<Rest ...>>::get(data.rest);
+}
+};
+int main()
+{
+DataStructure<int, float, std::string> data(1, 2.1, "Hello");
+std::cout << data.get<0>() << std::endl;
+std::cout << data.get<1>() << std::endl;
+std::cout << data.get<2>() << std::endl;
+return 0;
+}
+```
+
+## Section 2.4: Argument forwarding
+Template may accept both lvalue and rvalue references using forwarding reference:
+```CPP
+template <typename T>
+void f(T &&t);
+In this case, the real type of t will be deduced depending on the context:
+struct X { };
+X x;
+f(x); // calls f<X&>(x)
+f(X()); // calls f<X>(x)
+```
+In the first case, the type T is deduced as reference to X (X&), and the type of t is lvalue reference to X, while in the
+second case the type of T is deduced as X and the type of t as rvalue reference to X (X&&).
+Note: It is worth noticing that in the first case, decltype(t) is the same as T, but not in the second.
+In order to perfectly forward t to another function ,whether it is an lvalue or rvalue reference, one must use
+std::forward:
+```CPP
+template <typename T>
+void f(T &&t) {
+g(std::forward<T>(t));
+}
+Forwarding references may be used with variadic templates:
+template <typename... Args>
+void f(Args&&... args) {
+g(std::forward<Args>(args)...);
+}
+```
+Note: Forwarding references can only be used for template parameters, for instance, in the following code, v is a
+rvalue reference, not a forwarding reference:
+```CPP
+#include <vector>
+template <typename T>
+void f(std::vector<T> &&v);
+```
+
+## Section 2.5: Partial template specialization
+In contrast of a full template specialization partial template specialization allows to introduce template with some of
+the arguments of existing template fixed. Partial template specialization is only available for template class/structs:
+```CPP
+// Common case:
+template<typename T, typename U>
+struct S {
+T t_val;
+U u_val;
+};
+// Special case when the first template argument is fixed to int
+template<typename V>
+struct S<int, V> {
+double another_value;
+int foo(double arg) {// Do something}
+};
+```
+As shown above, partial template specializations may introduce completely different sets of data and function
+members.
+When a partially specialized template is instantiated, the most suitable specialization is selected. For example, let's
+define a template and two partial specializations:
+```CPP
+template<typename T, typename U, typename V>
+struct S {
+static void foo() {
+std::cout << "General case\n";
+}
+};
+template<typename U, typename V>
+struct S<int, U, V> {
+static void foo() {
+std::cout << "T = int\n";
+}
+};
+template<typename V>
+struct S<int, double, V> {
+static void foo() {
+std::cout << "T = int, U = double\n";
+}
+};
+```
+Now the following calls:
+```CPP
+S<std::string, int, double>::foo();
+S<int, float, std::string>::foo();
+S<int, double, std::string>::foo();
+```
+will print
+General case
+```CPP
+T = int
+T = int, U = double
+```
+Function templates may only be fully specialized:
+```CPP
+template<typename T, typename U>
+void foo(T t, U u) {
+std::cout << "General case: " << t << " " << u << std::endl;
+}
+// OK.
+template<>
+void foo<int, int>(int a1, int a2) {
+std::cout << "Two ints: " << a1 << " " << a2 << std::endl;
+}
+void invoke_foo() {
+foo(1, 2.1); // Prints "General case: 1 2.1"
+foo(1,2); // Prints "Two ints: 1 2"
+}
+
+// Compilation error: partial function specialization is not allowed.
+template<typename U>
+void foo<std::string, U>(std::string t, U u) {
+std::cout << "General case: " << t << " " << u << std::endl;
+}
+```
+
+## Section 2.6: Template Specialization
+You can define implementation for specific instantiations of a template class/method.
+For example if you have:
+```CPP
+template <typename T>
+T sqrt(T t) { /* Some generic implementation */ }
+```
+You can then write:
+```CPP
+template<>
+int sqrt<int>(int i) { /* Highly optimized integer implementation */ }
+```
+Then a user that writes sqrt(4.0) will get the generic implementation whereas sqrt(4) will get the specialized
+implementation.
+
+## Section 2.7: Alias template
+Version ≥ C++11
+Basic example:
+```CPP
+template<typename T> using pointer = T*;
+```
+This definition makes pointer<T> an alias of T*. For example:
+```CPP
+pointer<int> p = new int; // equivalent to: int* p = new int;
+```
+Alias templates cannot be specialized. However, that functionality can be obtained indirectly by having them refer
+to a nested type in a struct:
+```CPP
+template<typename T>
+struct nonconst_pointer_helper { typedef T* type; };
+template<typename T>
+struct nonconst_pointer_helper<T const> { typedef T* type; };
+template<typename T> using nonconst_pointer = nonconst_pointer_helper<T>::type;
+```
+
+## Section 2.8: Explicit instantiation
+An explicit instantiation definition creates and declares a concrete class, function, or variable from a template,
+without using it just yet. An explicit instantiation can be referenced from other translation units. This can be used to
+avoid defining a template in a header file, if it will only be instantiated with a finite set of arguments. For example:
+```CPP
+// print_string.h
+template <class T>
+void print_string(const T* str);
+// print_string.cpp
+#include "print_string.h"
+template void print_string(const char*);
+template void print_string(const wchar_t*);
+```
+Because print_string<char> and print_string<wchar_t> are explicitly instantiated in print_string.cpp, the
+linker will be able to find them even though the print_string template is not defined in the header. If these explicit
+instantiation declarations were not present, a linker error would likely occur. See Why can templates only be
+implemented in the header file?
+Version ≥ C++11
+If an explicit instantiation definition is preceded by the extern keyword, it becomes an explicit instantiation
+declaration instead. The presence of an explicit instantiation declaration for a given specialization prevents the
+implicit instantiation of the given specialization within the current translation unit. Instead, a reference to that
+specialization that would otherwise cause an implicit instantiation can refer to an explicit instantiation definition in
+the same or another TU.
+foo.h
+```CPP
+#ifndef FOO_H
+#define FOO_H
+template <class T> void foo(T x) {
+// complicated implementation
+}
+#endif
+```
+foo.cpp
+```CPP
+#include "foo.h"
+// explicit instantiation definitions for common cases
+template void foo(int);
+template void foo(double);
+```
+main.cpp
+```CPP
+#include "foo.h"
+// we already know foo.cpp has explicit instantiation definitions for these
+extern template void foo(double);
+int main() {
+foo(42); // instantiates foo<int> here;
+// wasteful since foo.cpp provides an explicit instantiation already!
+foo(3.14); // does not instantiate foo<double> here;
+// uses instantiation of foo<double> in foo.cpp instead
+}
+```
+
+## Section 2.9: Non-type template parameter
+Apart from types as a template parameter we are allowed to declare values of constant expressions meeting one of
+the following criteria:
+integral or enumeration type,
+pointer to object or pointer to function,
+lvalue reference to object or lvalue reference to function,
+pointer to member,
+std::nullptr_t.
+Like all template parameters, non-type template parameters can be explicitly specified, defaulted, or derived
+implicitly via Template Argument Deduction.
+Example of non-type template parameter usage:
+```CPP
+#include <iostream>
+template<typename T, std::size_t size>
+std::size_t size_of(T (&anArray)[size]) // Pass array by reference. Requires.
+{ // an exact size. We allow all sizes
+return size; // by using a template "size".
+}
+int main()
+{
+char anArrayOfChar[15];
+std::cout << "anArrayOfChar: " << size_of(anArrayOfChar) << "\n";
+int anArrayOfData[] = {1,2,3,4,5,6,7,8,9};
+std::cout << "anArrayOfData: " << size_of(anArrayOfData) << "\n";
+}
+```
+Example of explicitly specifying both type and non-type template parameters:
+```CPP
+#include <array>
+int main ()
+{
+std::array<int, 5> foo; // int is a type parameter, 5 is non-type
+}
+```
+Non-type template parameters are one of the ways to achieve template recurrence and enables to do
+Metaprogramming.
+
+## Section 2.10: Declaring non-type template arguments with auto
+Prior to C++17, when writing a template non-type parameter, you had to specify its type first. So a common pattern
+became writing something like:
+```CPP
+template <class T, T N>
+struct integral_constant {
+using type = T;
+static constexpr T value = N;
+};
+using five = integral_constant<int, 5>;
+```
+But for complicated expressions, using something like this involves having to write decltype(expr), expr when
+instantiating templates. The solution is to simplify this idiom and simply allow auto:
+Version ≥ C++17
+```CPP
+template <auto N>
+struct integral_constant {
+using type = decltype(N);
+static constexpr type value = N;
+};
+C++ Notes for Professionals 21
+using five = integral_constant<5>;
+```
+Empty custom deleter for unique_ptr
+A nice motivating example can come from trying to combine the empty base optimization with a custom deleter for
+unique_ptr. Different C API deleters have different return types, but we don't care - we just want something to
+work for any function:
+```CPP
+template <auto DeleteFn>
+struct FunctionDeleter {
+template <class T>
+void operator()(T* ptr) const {
+DeleteFn(ptr);
+}
+};
+template <T, auto DeleteFn>
+using unique_ptr_deleter = std::unique_ptr<T, FunctionDeleter<DeleteFn>>;
+```
+And now you can simply use any function pointer that can take an argument of type T as a template non-type
+parameter, regardless of return type, and get a no-size overhead unique_ptr out of it:
+```CPP
+unique_ptr_deleter<std::FILE, std::fclose> p;
+```
+
+## Section 2.11: Template template parameters
+Sometimes we would like to pass into the template a template type without fixing its values. This is what template
+template parameters are created for. Very simple template template parameter examples:
+```CPP
+template <class T>
+struct Tag1 { };
+template <class T>
+struct Tag2 { };
+template <template <class> class Tag>
+struct IntTag {
+typedef Tag<int> type;
+};
+int main() {
+IntTag<Tag1>::type t;
+}
+```
+Version ≥ C++11
+```CPP
+#include <vector>
+#include <iostream>
+template <class T, template <class...> class C, class U>
+C<T> cast_all(const C<U> &c) {
+C<T> result(c.begin(), c.end());
+return result;
+}
+int main() {
+std::vector<float> vf = {1.2, 2.6, 3.7};
+auto vi = cast_all<int>(vf);
+for(auto &&i: vi) {
+std::cout << i << std::endl;
+}
+}
+```
+
+## Section 2.12: Default template parameter value
+Just like in case of the function arguments, template parameters can have their default values. All template
+parameters with a default value have to be declared at the end of the template parameter list. The basic idea is that
+the template parameters with default value can be omitted while template instantiation.
+Simple example of default template parameter value usage:
+```CPP
+template <class T, size_t N = 10>
+struct my_array {
+T arr[N];
+};
+int main() {
+/* Default parameter is ignored, N = 5 */
+my_array<int, 5> a;
+/* Print the length of a.arr: 5 */
+std::cout << sizeof(a.arr) / sizeof(int) << std::endl;
+/* Last parameter is omitted, N = 10 */
+my_array<int> b;
+/* Print the length of a.arr: 10 */
+std::cout << sizeof(b.arr) / sizeof(int) << std::endl;
+}
+```
