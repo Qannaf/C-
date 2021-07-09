@@ -1,7 +1,7 @@
 # C++ notions de base
 --------------------
 <p align="center">
-  <img width="250" height="210" src="https://C++.png">
+  <img width="250" height="210" src="C++.png">
 
 </p>
 
