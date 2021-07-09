@@ -1298,9 +1298,11 @@ pointers. Conceptually it is important to remember that iterators are positions,
 following sequence:
 A B C
 The sequence contains three elements and four positions
+```cpp
     +---+---+---+---+
     | A | B | C |   |
     +---+---+---+---+
+```
 Elements are things within a sequence. Positions are places where meaningful operations can happen to the
 sequence. For example, one inserts into a position, before or after element A, not into an element. Even deletion of
 an element (erase(A)) is done by first finding its position, then deleting it.
