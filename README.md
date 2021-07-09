@@ -1313,28 +1313,35 @@ auto my_iterator = my_vector.begin(); // position
 auto my_value = *my_iterator; // value
 One can think of an iterator as dereferencing to the value it refers to in the sequence. This is especially useful in
 understanding why you should never dereference the end() iterator in a sequence:
+```cpp
     +---+---+---+---+
     | A | B | C |   |
     +---+---+---+---+
      ?            ?
      |            +-- An iterator here has no value. Do not dereference it!
      +-------------- An iterator here dereferences to the value A.
+```
 In all the sequences and containers found in the C++ standard library, begin() will return an iterator to the first
 position, and end() will return an iterator to one past the last position (not the last position!). Consequently, the
 names of these iterators in algorithms are oftentimes labelled first and last:
+```cpp
 +---+---+---+---+
 | A | B | C |   |
 +---+---+---+---+
  ?            ?
  |            |
  +- first     +- last
+```
 It is also possible to obtain an iterator to any sequence, because even an empty sequence contains at least one
 C++ Notes for Professionals 33
 position:
+```cpp
     +---+
     |   |
     +---+
+```
 In an empty sequence, begin() and end() will be the same position, and neither can be dereferenced:
+```cpp
     +---+
     |   |
     +---+
@@ -1343,13 +1350,16 @@ In an empty sequence, begin() and end() will be the same position, and neither c
      +- empty_sequence.begin()
      |
      +- empty_sequence.end()
+```
 The alternative visualization of iterators is that they mark the positions between elements:
+```cpp
     +---+---+---+
     | A | B | C |
     +---+---+---+
     ?   ^   ^   ?
     |           |
     +- first    +- last
+```
 and dereferencing an iterator returns a reference to the element coming after the iterator. Some situations where
 this view is particularly useful are:
 insert operations will insert elements into the position indicated by the iterator,
@@ -1505,6 +1515,7 @@ std::vector<int>::iterator i = r.base();
 assert(&*r == &*(i-1)); // always true if r, (i-1) are dereferenceable
 // and are not proxy iterators
 ```
+```cpp
     +---+---+---+---+---+---+---+
     |   | 1 | 2 | 3 | 4 | 5 |   |
     +---+---+---+---+---+---+---+
@@ -1514,7 +1525,9 @@ assert(&*r == &*(i-1)); // always true if r, (i-1) are dereferenceable
           |                   rbegin().base()
        begin()
      rend().base()
+```
 In the visualization where iterators mark positions between elements, the relationship is simpler:
+```cpp
     +---+---+---+---+---+
     | 1 | 2 | 3 | 4 | 5 |
     +---+---+---+---+---+
@@ -1525,6 +1538,7 @@ In the visualization where iterators mark positions between elements, the relati
     begin()            rbegin().base()
     rend()
     rend().base()
+```
 
 ## Section 4.5: Stream Iterators
 Stream iterators are useful when we need to read a sequence or print formatted data from a container:
