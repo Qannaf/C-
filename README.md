@@ -2,8 +2,8 @@
 --------------------
 <p align="center">
   <img width="250" height="210" src="C++.png">
-
 </p>
+
 
 # Chapter 1: Getting started with C++
 ## Section 1.1: Hello World
