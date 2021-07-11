@@ -17,6 +17,7 @@ std::cout << "Hello World!" << std::endl;
 ```
 
 
+
 ## Section 1.2: Comments
 A comment is a way to put arbitrary text inside source code without having the C++ compiler interpret it with any
 functional meaning. Comments are used to give insight into the design or method of a program.
